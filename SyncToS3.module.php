@@ -27,7 +27,7 @@ class SyncToS3 extends Process
 
     public function init()
     {
-        $this->addHookAfter('Pages::saveReady', $this, 'syncToS3');
+        $this->addHookAfter('Pages::saveReady', $this, 'startBackgroundSync');
 
         if ($this->cloudfront_url) {
             // Redirect image' URLS to Cloudfront
@@ -38,11 +38,30 @@ class SyncToS3 extends Process
         }
     }
 
-    /**********************************************************************************************
-     * Redirect assets URLs to Cloudfront
+    /**
+     * Function to run the sync job in the background
      *
-     **********************************************************************************************/
+     * @param HookEvent $event
+     * @return void
+     */
+    public function startBackgroundSync(HookEvent $event)
+    {
+        // Run the sync job in the background
+        // Run tasks in the background
+        $pid = shell_exec(
+            sprintf(
+                '%s > /dev/null 2>&amp;1 &amp; echo $!',
+                $this->syncToS3($event)
+            )
+        );
+    }
 
+    /**
+     * Function to redirect the URL to Cloudfront
+     *
+     * @param [type] $event
+     * @return void
+     */
     public function redirectURL($event)
     {
         if ($event->page->template == 'admin') {
@@ -52,6 +71,12 @@ class SyncToS3 extends Process
         }
     }
 
+    /**
+     * Function to sync the site folder to S3
+     *
+     * @param HookEvent $event
+     * @return void
+     */
     public function syncToS3(HookEvent $event)
     {
         // AWS S3 configuration
@@ -80,6 +105,14 @@ class SyncToS3 extends Process
         }
     }
 
+    /**
+     * Function to 
+     *
+     * @param [type] $s3Client
+     * @param [type] $bucket
+     * @param [type] $sourceDir
+     * @return void
+     */
     private function syncDirectoryToS3($s3Client, $bucket, $sourceDir)
     {
         $iterator = new \RecursiveIteratorIterator(
@@ -99,7 +132,7 @@ class SyncToS3 extends Process
                 }
             }
         } catch (AwsException $e) {
-            $this->wire->log->save('S3Sync', "Error listing objects: " . $e->getMessage());
+            $this->wire->log->save('SyncToS3', "Error listing objects: " . $e->getMessage());
             return; // Exit if we can't list objects
         }
 
@@ -118,7 +151,7 @@ class SyncToS3 extends Process
 
                 // Exclude specific files and directories
                 if (strpos($key, '.DS_Store') !== false || strpos($key, '.git') !== false) {
-                    $this->wire->log->save('S3Sync', "Skipped (excluded): $key");
+                    $this->wire->log->save('SyncToS3', "Skipped (excluded): $key");
                     continue; // Skip this file
                 }
 
@@ -131,12 +164,12 @@ class SyncToS3 extends Process
                             'Key' => $key,
                             'SourceFile' => $filePath,
                         ]);
-                        $this->wire->log->save('S3Sync', "Uploaded: $key");
+                        $this->wire->log->save('SyncToS3', "Uploaded: $key");
                     } catch (AwsException $e) {
-                        $this->wire->log->save('S3Sync', "Error uploading $key: " . $e->getMessage());
+                        $this->wire->log->save('SyncToS3', "Error uploading $key: " . $e->getMessage());
                     }
                 } else {
-                    $this->wire->log->save('S3Sync', "Skipped (no change): $key");
+                    $this->wire->log->save('SyncToS3', "Skipped (no change): $key");
                 }
             }
         }
