@@ -51,8 +51,10 @@ class SyncToS3 extends Process
         $scriptPath = $script . ' ' . $this->s3_bucket_name . ' ' . $this->wire->config->paths->site . ' ' . $this->s3_region . ' ' . $this->access_key_id . ' ' . $this->secret_access_key;
 
         // Run the script
-        $output = shell_exec('bash ' . $scriptPath);
-        $this->wire->log->save('SyncToS3', $output);
+        exec('bash ' . $scriptPath . ' 2>&1', $outputAndErrors, $returnCode);
+        foreach ($outputAndErrors as $outputAndError) {
+            $this->wire->log->save('SyncToS3', $outputAndError);
+        }
     }
 
     /**

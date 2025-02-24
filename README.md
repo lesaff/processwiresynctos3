@@ -1,5 +1,5 @@
 # ProcessWire Sync to S3 Module
-Version 1.0.6
+Version 1.0.7
 by Rudy Affandi <rudy.affandi@proactiveinvestors.com> (2025)  
 
 This ProcessWire module will automatically sync your website assets in your `site/assets` folders along with other folders that you specify.
