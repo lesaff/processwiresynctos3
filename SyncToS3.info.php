@@ -17,7 +17,7 @@ namespace ProcessWire;
 $info = [
     // Module meta data
     'title'    => 'Sync to S3',
-    'version'  => '1.0.5',
+    'version'  => '1.0.6',
     'author'   => 'Rudy Affandi',
     'summary'  => 'Sync site folder to AWS S3 automatically',
     'autoload' => true,

@@ -47,13 +47,11 @@ class SyncToS3 extends Process
     public function startBackgroundSync(HookEvent $event)
     {
         // Run the sync job in the background
-        $scriptPath = __DIR__ . '/synctos3.sh ' . $this->s3_bucket_name . ' ' . $this->wire->config->paths->site . ' ' . $this->s3_region . ' ' . $this->access_key_id . ' ' . $this->secret_access_key;
-
-        // Add proper permissions to the script
-        shell_exec('chmod +x ' . $scriptPath);
+        $script = __DIR__ . '/synctos3.sh';
+        $scriptPath = $script . ' ' . $this->s3_bucket_name . ' ' . $this->wire->config->paths->site . ' ' . $this->s3_region . ' ' . $this->access_key_id . ' ' . $this->secret_access_key;
 
         // Run the script
-        $output = shell_exec($scriptPath);
+        $output = shell_exec('bash ' . $scriptPath);
         $this->wire->log->save('SyncToS3', $output);
     }
 
