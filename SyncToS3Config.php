@@ -72,15 +72,6 @@ class SyncToS3Config extends ModuleConfig
                         'value' => $this->_(''),
                         'columnWidth' => 100,
                     ],
-                    [
-                        'name' => 'folders_to_include',
-                        'label' => $this->_('List of folders to include'),
-                        'description' => $this->_('Path is in relation to your /site folder'),
-                        'type' => 'text',
-                        'required' => false,
-                        'value' => $this->_('/site/assets/files'),
-                        'columnWidth' => 100,
-                    ],
                 ],
             ]
         ]);

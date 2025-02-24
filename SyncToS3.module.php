@@ -47,13 +47,10 @@ class SyncToS3 extends Process
     public function startBackgroundSync(HookEvent $event)
     {
         // Run the sync job in the background
-        // Run tasks in the background
-        $pid = shell_exec(
-            sprintf(
-                '%s > /dev/null 2>&amp;1 &amp; echo $!',
-                $this->syncToS3($event)
-            )
-        );
+        $scriptPath = __DIR__ . '/synctos3.sh ' . $this->s3_bucket_name . ' ' . $this->wire->config->paths->site . ' ' . $this->s3_region . ' ' . $this->access_key_id . ' ' . $this->secret_access_key;
+
+        $output = shell_exec($scriptPath);
+        $this->wire->log->save('SyncToS3', $output);
     }
 
     /**
@@ -149,11 +146,6 @@ class SyncToS3 extends Process
                     $key = substr($filePath, $sitePath);
                 }
 
-                // Exclude specific files and directories
-                if (strpos($key, '.DS_Store') !== false || strpos($key, '.git') !== false) {
-                    $this->wire->log->save('SyncToS3', "Skipped (excluded): $key");
-                    continue; // Skip this file
-                }
 
                 // Check if the file exists in S3 and if it has been modified
                 if (!isset($existingFiles[$key]) || $file->getMTime() > $existingFiles[$key]->getTimestamp()) {
